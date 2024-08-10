@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo "Running credits test"
+./tests/credits/test &&
+echo "Running load-game test"
+./tests/load-game/test &&
+echo "Running new-game test"
+./tests/new-game/test &&
+echo "Running save-game test"
+./tests/save-game/test &&
+echo "Running game-end test"
+./tests/game-end/test &&
+echo "Running qwirkle test"
+./tests/qwirkle/test &&
+echo "Running line-validation test"
+./tests/line-validation/test;
