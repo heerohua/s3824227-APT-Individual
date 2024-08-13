@@ -25,10 +25,13 @@
 void displayWelcomeMessage();
 void displayMainMenu();
 void startNewGame(bool &quit);
+void startNewGameAI(bool &quit, unsigned int randSeed);
 void loadGame(bool &quit);
 void showCredits();
 void handleMenuChoice(int choice, bool &quit, unsigned int randSeed);
 void playTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard *board, bool &quit);
+void playAITurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard *board, bool &quit);
+void playAIFirstTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gameBoard, bool &quit);
 void gameLoop(Player *player1, Player *player2, TileBag *tileBag, GameBoard *board);
 void printScores(Player *player1, Player *player2, TileBag *tileBag, GameBoard* GameBoard, bool &quit);
 std::string handleInput(bool &quit);
@@ -36,6 +39,7 @@ std::string handleInput(bool &quit);
 int main(int argc, char **argv)
 {
   bool quit = false;
+  bool versusAI = false;
   int randSeed = (unsigned int)time(NULL);
   
   if (argc > 1) {
@@ -47,11 +51,14 @@ int main(int argc, char **argv)
     if (std::string(argv[1]) == "e2etest") {
       randSeed = 0;
     }
+    if (std::string(argv[1]) == "--ai"){
+    versusAI = true;
+    }
   }
 
   displayWelcomeMessage();
 
-  while (!quit)
+  while (!quit && !versusAI)
   {
     displayMainMenu();
     std::string input = handleInput(quit);
@@ -75,6 +82,12 @@ int main(int argc, char **argv)
     if(quit) {
       std::cout << "Goodbye!" << std::endl;
     }
+  }
+
+  if (versusAI){
+    std::cout << "- Versus AI Mode -" << std::endl;
+    startNewGameAI(quit, randSeed);
+    // startNewGameAI(quit, 1); // REMOVE AFTER TESTING COMPELTE
   }
 
   return EXIT_SUCCESS;
@@ -122,6 +135,40 @@ void startNewGame(bool &quit, unsigned int randSeed)
 
   Player player1(player1Name);
   Player player2(player2Name);
+  
+  GameBoard gameBoard(NUM_BOARD_ROWS, NUM_BOARD_COLS);
+
+  TileBag tileBag;
+  // Shuffle the tile bag
+  tileBag.shuffle(randSeed);
+
+  std::cout << "Let's Play!" << std::endl;
+
+  // Draws 6 tiles for each player to start the game
+  player1.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
+  player2.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
+
+  // Primary functions used to run recursive gameplay operations
+  gameLoop(&player1, &player2, &tileBag, &gameBoard);
+}
+
+void startNewGameAI(bool &quit, unsigned int randSeed)
+{
+  std::cout << "Enter a name for player 1 (uppercase characters only)" << std::endl;
+  std::cout << "> ";
+  std::string player1Name = handleInput(quit);
+
+  while (!InputValidator::isValidName(player1Name) && !quit)
+  {
+    std::cout << "Invalid name. Please enter uppercase letters only." << std::endl;
+    std::cout << "> ";
+    player1Name = handleInput(quit);
+  }
+
+  std::cout << "Player 2 will be played by 'AI'. Good luck!" << std::endl;
+
+  Player player1(player1Name);
+  Player player2("AI");
   
   GameBoard gameBoard(NUM_BOARD_ROWS, NUM_BOARD_COLS);
 
@@ -321,17 +368,199 @@ void playTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gam
 
 void gameLoop(Player *player1, Player *player2, TileBag *tileBag, GameBoard* gameBoard)
 {
+  int turn = 0;
   bool quit = false;
   while (!quit)
   {
+    // If game is AI vs AI this ensures player 1 makes a valid 1st move
+    if (player1->getName() == "AI" && turn == 0){
+      printScores(player1, player2, tileBag, gameBoard, quit);
+      playAIFirstTurn(player1, player2, tileBag, gameBoard, quit);
+    }
+
+    if (!quit && player1->getName() != "AI")
+    {
     printScores(player1, player2, tileBag, gameBoard, quit);
     playTurn(player1, player2, tileBag, gameBoard, quit);
-    if (!quit)
+    } else {
+      // CALL AI ENGINE HERE
+      if (player1->getName() == "AI" && turn >0 && !quit){
+        printScores(player1, player2, tileBag, gameBoard, quit);
+        playAITurn(player1, player2, tileBag, gameBoard, quit);
+      }
+    }
+    
+    if (!quit && player2->getName() != "AI")
     {
       printScores(player1, player2, tileBag, gameBoard, quit);
       playTurn(player2, player1, tileBag, gameBoard, quit);
     }
+    else {
+      // CALL AI ENGINE HERE 
+      if (!quit){
+        playAITurn(player2, player1, tileBag, gameBoard, quit);
+      }      
+    }
+    turn++;
   }
+}
+
+// Structures used to contain information related to potential moves for AI players
+struct AIMoveList {
+  Tile* tile;
+  int row;
+  int col;
+  int score;
+
+  AIMoveList(Tile* tile, int row, int col, int score) : tile(tile), row(row), col(col), score(score) {}
+};
+
+void playAIFirstTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gameBoard, bool &quit){
+  LinkedList* playerHand = player->getHand();
+  
+  std::cout << "ATTEMPTING TO PLACE FIRST TILE FOR AI." << std::endl;
+
+  char tileColour = playerHand->get(0)->getColour();
+  char tileShape = playerHand->get(0)->getShape();
+  Tile* tile = new Tile(tileColour,tileShape);
+  gameBoard->placeTile(13,13,tile);
+  Tile* removedTile = player->removeTileFromHand(tile);
+  if (removedTile != nullptr)
+  {
+    delete removedTile;
+    Tile* newTile = tileBag->drawTile();
+    if (newTile != nullptr)
+    {
+      player->addTileToHand(newTile);
+    }
+    int score = Rules::calculateScore(gameBoard, 13,13);
+    player->setScore(player->getScore() + score);
+    if (score > 6)
+    {
+      std::cout << "QWIRKLE!!!" << std::endl;
+    }
+  }
+
+}
+
+void playAITurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gameBoard, bool &quit)
+{
+
+  std::vector<AIMoveList> validMoves;
+  LinkedList* playerHand = player->getHand();
+
+  if (!playerHand->getLength()){
+    std::cout << "I hope you enjoyed playing qwirkle versus AI. Please re-launch the application to play again." << std::endl << std::endl << "Exiting application...." << std::endl;
+    return;
+  }
+
+  for (int row = 0; row < 26; row++){
+    for (int col = 0; col < 26; col++){
+      if (gameBoard->getTile(row,col) != nullptr){
+        // std::cout << "TILE FOUND AT : " << row << " " << col << std::endl;
+        // std::cout << "tileOptions size: " << playerHand->getLength() << std::endl;
+        for (int tileOption = 0; tileOption < playerHand->getLength(); tileOption++){
+          char tileColour = playerHand->get(tileOption)->getColour();
+          char tileShape = playerHand->get(tileOption)->getShape();
+          int score = 0;
+          Tile* tile = new Tile (tileColour,tileShape);
+
+          // std::cout << "Player hand, tile option: " << tileOption << " - is: " << tile->print() << std::endl;
+          
+          if (Rules::validateMove(gameBoard, tile, row+1, col)){
+            // std::cout << "Valid move found at Row:" << row+1 << ", Col: " << col <<  "." << std::endl; 
+            score = Rules::calculateScore(gameBoard, row+1, col);
+            validMoves.push_back(AIMoveList(tile, row+1, col, score));          
+          }
+
+          if (Rules::validateMove(gameBoard, tile, row-1, col)){
+            // std::cout << "Valid move found at Row:" << row-1 << ", Col: " << col <<  "." << std::endl; 
+            score = Rules::calculateScore(gameBoard, row-1, col);
+            validMoves.push_back(AIMoveList(tile, row-1, col, score));  
+          }
+
+          if (Rules::validateMove(gameBoard, tile, row, col+1)){
+            // std::cout << "Valid move found at Row:" << row << ", Col: " << col+1 <<  "." << std::endl;
+            score = Rules::calculateScore(gameBoard, row, col+1);
+            validMoves.push_back(AIMoveList(tile, row, col+1, score));   
+          }
+
+          if (Rules::validateMove(gameBoard, tile, row, col-1)){
+            // std::cout << "Valid move found at Row:" << row << ", Col: " << col-1 <<  "." << std::endl; 
+            score = Rules::calculateScore(gameBoard, row, col-1);
+            validMoves.push_back(AIMoveList(tile, row, col-1, score));  
+          }
+        }        
+      }
+    }
+  }
+
+  int highestScore = 0;
+  int highestScoreIndexValue = 0;
+  int moveListSize = validMoves.size();
+
+  for (int i = 0; i < moveListSize; i++){
+  // std::cout << "Move " << i << ": is " << validMoves[i].tile->print() << " - Score: " << validMoves[i].score << std::endl;
+    if (validMoves[i].score > highestScore){
+      // std::cout << "New high score! for move " << i << " with a value of: " << validMoves[i].score << std::endl;
+      highestScore = validMoves[i].score;
+      highestScoreIndexValue = i;
+    }
+  }
+
+  // std::cout << "The move with the highest score was: " << validMoves[highestScoreIndexValue].tile->print() << " and the highest score was " << highestScore << " at ROW " << validMoves[highestScoreIndexValue].row << ", COL " << validMoves[highestScoreIndexValue].col << std::endl;
+  std::cout << "AI Player's hand: " << playerHand->toString() << std::endl;
+
+  // Replace first tile in hand if no moves available
+  if (moveListSize == 0 && !quit && playerHand->getLength() > 0){
+
+    std::cout << "ATTEMPTING TO REPLACE TILE FOR AI." << std::endl;
+
+    char tileColour = playerHand->get(0)->getColour();
+    char tileShape = playerHand->get(0)->getShape();
+    Tile* tile = new Tile(tileColour,tileShape);
+    Tile *removedTile = player->removeTileFromHand(tile);
+    if (removedTile != nullptr)
+    {
+      std::cout << removedTile->print() << " tile removed from AI's hand and added to the bag." << std::endl;
+      delete removedTile;
+      tileBag->addTile(tile);
+      Tile *newTile = tileBag->drawTile();
+      if (newTile != nullptr)
+      {
+        player->addTileToHand(newTile);
+        std::cout << newTile->print() << " tile drawn and added to AI's hand." << std::endl;
+      }
+      else
+      {
+        std::cout << "Attempted to replace a tile, however there are no tiles left to draw from the tile bag." << std::endl;
+      }
+    }
+  }
+  else
+  {
+    gameBoard->placeTile(validMoves[highestScoreIndexValue].row, validMoves[highestScoreIndexValue].col, validMoves[highestScoreIndexValue].tile);
+    Tile* removedTile = player->removeTileFromHand(validMoves[highestScoreIndexValue].tile);
+    if (removedTile != nullptr)
+    {
+      delete removedTile;
+      Tile* newTile = tileBag->drawTile();
+      if (newTile != nullptr)
+      {
+        player->addTileToHand(newTile);
+      }
+      int score = Rules::calculateScore(gameBoard, validMoves[highestScoreIndexValue].row, validMoves[highestScoreIndexValue].col);
+      player->setScore(player->getScore() + score);
+      if (score > 6)
+      {
+        std::cout << "QWIRKLE!!!" << std::endl; // REMOVE AND ADD TO RULES -  THIS IS ACTUALLY INCORRECT SCORING
+      }
+    }
+    else
+    {
+      std::cout << "Error: Failed to remove tile from hand." << std::endl;
+    }
+  }  
 }
 
 void showCredits()
