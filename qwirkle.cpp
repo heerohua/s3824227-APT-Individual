@@ -450,7 +450,7 @@ void playAITurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* g
   LinkedList* playerHand = player->getHand();
 
   if (!playerHand->getLength()){
-    std::cout << "I hope you enjoyed playing qwirkle versus AI. Please re-launch the application to play again." << std::endl << std::endl << "Exiting application...." << std::endl;
+    std::cout << "I hope you enjoyed playing qwirkle versus AI. Please re-launch the application with \"./qwirkle.exe --ai\" to play again with AI enabled." << std::endl << std::endl << "Exiting application...." << std::endl;
     return;
   }
 
