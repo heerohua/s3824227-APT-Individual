@@ -50,6 +50,7 @@ Or run individually:<br>
 
 # Remaining ToDo - Individual
 
+- Update README to be more individualised. Add commands for running AI
 - Fix qwirkle scoring logic. Remove output from place tile (both player and AI sections) and move to Rules section as cardinal checks already exists here. 
 - Remove debugging / bloated comments
 - Add appropriate commenting to newly added P1 vs AI and AI vs AI features
