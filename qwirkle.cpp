@@ -111,30 +111,42 @@ void displayMainMenu()
 
 void startNewGame(bool &quit, unsigned int randSeed)
 {
-  std::cout << "Enter a name for player 1 (uppercase characters only)" << std::endl;
-  std::cout << "> ";
-  std::string player1Name = handleInput(quit);
+  std::vector<Player> playerList;
+  int numPlayers = 0; 
 
-  while (!InputValidator::isValidName(player1Name) && !quit)
-  {
-    std::cout << "Invalid name. Please enter uppercase letters only." << std::endl;
+  while (numPlayers == 0){
+    std::cout << "Please select number of players (2-4)" << std::endl;
     std::cout << "> ";
-    player1Name = handleInput(quit);
+    std::string selection = handleInput(quit); 
+    if (std::stoi(selection) >1 && std::stoi(selection) <5){
+      numPlayers = std::stoi(selection);
+    }
   }
 
-  std::cout << "Enter a name for player 2 (uppercase characters only)" << std::endl;
-  std::cout << "> ";
-  std::string player2Name = handleInput(quit);
+  for (int i = 0; i < numPlayers; i++){
 
-  while (!InputValidator::isValidName(player2Name) && !quit)
-  {
-    std::cout << "Invalid name. Please enter uppercase letters only." << std::endl;
+    std::cout << "Enter a name for player " << i+1 << " (uppercase characters only)" << std::endl;
     std::cout << "> ";
-    player2Name = handleInput(quit);
+    std::string playerName = handleInput(quit);
+    while (!InputValidator::isValidName(playerName) && !quit)
+      {
+        std::cout << "Invalid name. Please enter uppercase letters only." << std::endl;
+        std::cout << "> ";
+        playerName = handleInput(quit);
+      }
+    playerList.push_back(playerName);
+  }
+  Player player1(playerList[0].getName());
+  Player player2(playerList[1].getName());
+  Player player3(playerList[0].getName());
+  Player player4(playerList[0].getName());
+  if (numPlayers > 2){
+    player3 = playerList[2].getName();
+  }
+  if (numPlayers > 3){
+    player4 = playerList[3].getName();
   }
 
-  Player player1(player1Name);
-  Player player2(player2Name);
   
   GameBoard gameBoard(NUM_BOARD_ROWS, NUM_BOARD_COLS);
 
@@ -147,9 +159,14 @@ void startNewGame(bool &quit, unsigned int randSeed)
   // Draws 6 tiles for each player to start the game
   player1.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
   player2.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
+  player3.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
+  player4.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
 
   // Primary functions used to run recursive gameplay operations
-  gameLoop(&player1, &player2, &tileBag, &gameBoard);
+  gameLoop(&player1, &player2, &tileBag, &gameBoard); 
+  /* Need to decide how I want to handle call to gameLoop - whether I modify to include P3 + P4 
+  * (eventually maybe p3/p4 AI too) OR just make a new "gameLoopExtended" for P3 + P4 inclusion
+  */ 
 }
 
 void startNewGameAI(bool &quit, unsigned int randSeed)
