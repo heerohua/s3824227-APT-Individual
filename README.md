@@ -43,7 +43,7 @@ Or run individually:<br>
 - Implemented playAITurn function which handles all AI move related logic
 	- Loops through all valid combinations of available moves on the gameboard and the AI's hand, and records the move and corresponding score to the vector "validMoves"
 	- Secondary loop through "validMoves" to find the recorded move with the highest score to choose as the AI's preferred move choice. Records index for re-use
-	- If the AI has tiles in their hand and no valid moves to play, the AI will "replace" a tile, discarding their HEAD tile to the TileBag and retrieving a new tile, added the new tile to the end of their tile list
+	- If the AI has tiles in their hand and no valid moves to play, the AI will "replace" a tile, discarding their HEAD tile to the TileBag and retrieving a new tile, added the new tile to the end of their tile list. Replacing head as it's been in hand longest and not used
 	- AI will "place" their highest scoring validated move onto the board and all game rules/logic/interactions will proceed as though AI is a player and turns will alternate
 	- Modified announced actions for AI to reflect they are for the AI, rather than "player"
 - Fixed minor bug introduced to testing with changes
