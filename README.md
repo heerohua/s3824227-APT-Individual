@@ -27,6 +27,13 @@ Or run individually:<br>
 
 # Individual changelog 
 
+## 14/8/24
+
+## qwirkle.cpp
+- Modified startnewGame function to include requisite logic to allow for 2-4 players
+- Users can now select between 2-4 players and initialise their names and hands. 
+- Need to decide how I want to handle call to gameLoop - whether I modify to include P3 + P4 (eventually maybe p3/p4 AI too) OR just make a new "gameLoopExtended" for P3 + P4 inclusion
+
 ## 13/8/24
 
 ## qwirkle.cpp
