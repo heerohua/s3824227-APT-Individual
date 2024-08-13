@@ -159,8 +159,12 @@ void startNewGame(bool &quit, unsigned int randSeed)
   // Draws 6 tiles for each player to start the game
   player1.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
   player2.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
-  player3.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
-  player4.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
+  if (numPlayers > 2){
+    player3.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
+  }
+  if (numPlayers > 3){
+    player4.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
+  }
 
   // Primary functions used to run recursive gameplay operations
   gameLoop(&player1, &player2, &tileBag, &gameBoard); 
@@ -397,10 +401,10 @@ void gameLoop(Player *player1, Player *player2, TileBag *tileBag, GameBoard* gam
 
     if (!quit && player1->getName() != "AI")
     {
-    printScores(player1, player2, tileBag, gameBoard, quit);
-    playTurn(player1, player2, tileBag, gameBoard, quit);
+      printScores(player1, player2, tileBag, gameBoard, quit);
+      playTurn(player1, player2, tileBag, gameBoard, quit);
     } else {
-      // CALL AI ENGINE HERE
+      // Calling to specific function with AI turn logic
       if (player1->getName() == "AI" && turn >0 && !quit){
         printScores(player1, player2, tileBag, gameBoard, quit);
         playAITurn(player1, player2, tileBag, gameBoard, quit);
@@ -413,7 +417,7 @@ void gameLoop(Player *player1, Player *player2, TileBag *tileBag, GameBoard* gam
       playTurn(player2, player1, tileBag, gameBoard, quit);
     }
     else {
-      // CALL AI ENGINE HERE 
+      // Calling to specific function with AI turn logic
       if (!quit){
         playAITurn(player2, player1, tileBag, gameBoard, quit);
       }      
