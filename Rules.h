@@ -11,10 +11,10 @@ public:
     static bool validateMove(GameBoard* board, Tile* tile, int x, int y);
 
     // Calculate the score of a move
-    static int calculateScore(GameBoard* board, int x, int y);
+    static int calculateScore(GameBoard* board, int x, int y, std::string playerName);
 
     // Check if the game is over
-    static bool isGameOver(Player* player1, Player* player2, TileBag* tileBag);
+    static bool isGameOver(std::vector<Player> playerList, TileBag* tileBag);
 
 private:
     // Helper functions for move validation and scoring

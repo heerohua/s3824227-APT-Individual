@@ -1,4 +1,5 @@
 #include "Tile.h"
+#include "TileCodes.h"
 
 Tile::Tile(Colour colour, Shape shape) : colour(colour), shape(shape) {}
 
@@ -46,3 +47,22 @@ std::string Tile::matchType(const Tile& other)
     }
     return "no-match";
 }
+
+// Returns the appropriate concatenated colour output for a tile being converted to colour
+std::string Tile::tileStringToColour() const {
+    return tileStringColourOptions() + getColour() + std::to_string(getShape()) + RESET_COLOUR;
+}
+
+// Determines the colour a tile should be using the TileCodes colour definitions
+std::string Tile::tileStringColourOptions() const {
+    switch (colour) {
+        case RED: return RED_COLOUR;
+        case ORANGE: return ORANGE_COLOUR;
+        case YELLOW: return YELLOW_COLOUR;
+        case GREEN: return GREEN_COLOUR;
+        case BLUE: return BLUE_COLOUR;
+        case PURPLE: return PURPLE_COLOUR;
+        default: return RESET_COLOUR;
+    }
+}
+

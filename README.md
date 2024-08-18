@@ -25,48 +25,54 @@ Or run individually:<br>
  `./tests/game-end/test` Test game ends when tiles run out<br>
  `./tests/line-validation/test` Test tile placement is valid based on neighboring tiles<br>
 
+# Milestone 3 - Gameplay Enhamcents Completed
+- MAJOR: Player1 versus AI (alt) AI versus AI (supports 2-4 player AI games)
+- MAJOR: Multiplayer  			TODO CONDITIONALS
+- MINOR: Coloured tiles 
+- MINOR: Better invalid input 
+
 # Individual changelog 
+- New features include the option to play 1v1 versus AI, Multiplayer mode (supporting 2-4 players), coloured tile mode, and to resize the gameboard. 
+- Numerous modifications to the existing game structure were required to capture new game modes and functions associated with individual milestones and their associated requirements
+- New args when launching qwirkle.exe include '--ai', '--mp', and '--colour'.
+- Minor bugfixes to original code
 
-## 14/8/24
+## GameBoard 
+- DisplayBoard function now accepts a boolean arg to toggle colour mode on / off when printing the gameboard state
 
-## qwirkle.cpp
-- Modified startnewGame function to include requisite logic to allow for 2-4 players
-- Users can now select between 2-4 players and initialise their names and hands. 
-- Need to decide how I want to handle call to gameLoop - whether I modify to include P3 + P4 (eventually maybe p3/p4 AI too) OR just make a new "gameLoopExtended" for P3 + P4 inclusion
+## Rules
+- isGameOver function has been refactored to cater for multiplayer mode
+- calculateScore function modified to include announcements for 'QWIRKLE!!!' appropriately when horizontal/vertical qwirkles are scored. Does not announce for AI to reduce potential for spam during move checks.
 
-## 13/8/24
+## Tile
+- Implemented two new functions to support the appropriate colouring of game tiles, should colourMode game options be enabled
+- tileStringCOlourOptions function contains a switch case which determines the colour a tile should be using the TileCodes colour definitions
+- tileStringToColour returns the appropriate concatenated colour output for a tile being converted to colour
 
-## qwirkle.cpp
-- Modified main body to include a "versusAI" boolean and additional argv if statement to modify initial application behaviour to bypass initial menus and load game state to begin a new game with player1 versus AI
-- Implemented startNewGameAI function to handle AI Games. 
-	- Player 1 initialisation and Player 2 automatically set to AI
-	- Initialises game state for Player 1 & 2 before starting the gameloop
-- Modified gameLoop to manage calls to "playAITurn" function if the player(s) name is "AI", otherwise turns are performed manually as per usual
-	- Added functionality to enable AI vs AI games, which required the inclusion of a turn counter to ensure player1 AI plays the first turn
-	- gameLoop now manages AI turns correctly in player vs AI or AI vs AI games
-- Created a new structure called "AIMoveList" to record available valid AI moves with the tile, row, col, and score for the move to help streamline the AI's logic
-- Implemented playAIFirstTurn function to ensure in AI vs AI games, player 1 always plays the first turn and doesn't error out looking for valid moves around existing board tiles
-	- Will play the first move as AI if player1 is also AI to ensure the game will proceed accordingly without errors
-- Implemented playAITurn function which handles all AI move related logic
-	- Loops through all valid combinations of available moves on the gameboard and the AI's hand, and records the move and corresponding score to the vector "validMoves"
-	- Secondary loop through "validMoves" to find the recorded move with the highest score to choose as the AI's preferred move choice. Records index for re-use
-	- If the AI has tiles in their hand and no valid moves to play, the AI will "replace" a tile, discarding their HEAD tile to the TileBag and retrieving a new tile, added the new tile to the end of their tile list. Replacing head as it's been in hand longest and not used
-	- AI will "place" their highest scoring validated move onto the board and all game rules/logic/interactions will proceed as though AI is a player and turns will alternate
-	- Modified announced actions for AI to reflect they are for the AI, rather than "player"
-- Fixed minor bug introduced to testing with changes
+## TileCodes
+- Updated definitions to include custom ANSI colours for each tile (approx. colour range referenced from https://talyian.github.io/ansicolors/)
+
+## Qwirkle
+- mainMenu function was implemented which accepts args while enabling it to be recalled after changing game options to manage the flow of the game's state 
+- handleMenuChoice function was update to accomodate changes to the main game menu and aassociated new routes with new gameplay features and options
+- gameOptions function was implemented to serve as a sub-menu choice to enable players to toggle game enhancements on/off without restarting the application
+- startNewGame was modified to accept args to manage the game options / enhancements toggled on/off by the user
+- startNewGameAI was implemented to manage the initialisation of 1v1 AI game mode without overloading/bloating the existing startNewGame function
+- gameLoop function was modified to manage games with the new game modes (AI and Multiplayer) as well as other game enhancements
+- playTurn was modified to accomodate new game modes and enhancements 
+- playAIFirstTurn function was implemented to accomodate for games where AI is player1 and must choose an appropriate first move 
+- AIMoveList structure was implemented to store an array of potential moves for AI when examining game board and move options 
+- playAITurn function was implemented to handle the logic associated with AI players making their best possible move based on the gameboard and tiles in hand
+- printScores function was updated to accomodate the multiplayer game mode and colour option enhancement
+
+## Tests
+- Updated existing test suite to accomodate new game modes
+- Imeplemented new tests <<<<<<>>>>>>
 
 # Remaining ToDo - Individual
 
-- Update README to be more individualised. Add commands for running AI
-- Fix qwirkle scoring logic. Remove output from place tile (both player and AI sections) and move to Rules section as cardinal checks already exists here. 
+- Update README to include commands for running new game modes
 - Remove debugging / bloated comments
-- Add appropriate commenting to newly added P1 vs AI and AI vs AI features
-- Implement a P1 vs AI and AI vs AI set of automated tests using a specific seed 
-- Check if anything is missing from changelog with regards to feature implementation
-- MAJOR - Add Player 3 and Player 4  
-- MAJOR - Add place multiple tiles (*If there's time to do extra milestones*)
-- MINOR - Colour 
-- MINOR - Better Invalid Input 
-- MINOR - Help
-- MINOR - Hints
-- MINOR - High Scores
+- Add appropriate commenting to newly added features in qwirkle.cpp
+- Fix save/load function and re-enable in requisite sections (such as playTurn function)
+- Fix tests to accomodate changes in formatting / game modes

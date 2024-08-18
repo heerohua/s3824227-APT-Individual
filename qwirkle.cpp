@@ -24,22 +24,25 @@
 // Function prototypes
 void displayWelcomeMessage();
 void displayMainMenu();
-void startNewGame(bool &quit);
-void startNewGameAI(bool &quit, unsigned int randSeed);
+void gameOptions(int randSeed, bool versusAI, bool colourMode);
+void mainMenu(bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColour);
+void startNewGame(bool &quit,  bool versusAI, bool colourMode);
+void startNewGameAI(bool &quit, unsigned int randSeed, bool versusAI, bool colourMode);
 void loadGame(bool &quit);
 void showCredits();
-void handleMenuChoice(int choice, bool &quit, unsigned int randSeed);
-void playTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard *board, bool &quit);
-void playAITurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard *board, bool &quit);
+void handleMenuChoice(int choice, bool &quit, unsigned int randSeed, bool versusAI, bool colourMode);
+void playTurn(Player player, std::vector<Player> playerList, TileBag *tileBag, GameBoard *board, bool &quit);
+void playAITurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard *board, bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColour);
 void playAIFirstTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gameBoard, bool &quit);
-void gameLoop(Player *player1, Player *player2, TileBag *tileBag, GameBoard *board);
-void printScores(Player *player1, Player *player2, TileBag *tileBag, GameBoard* GameBoard, bool &quit);
+void gameLoop(Player currentPlayer, std::vector<Player> playerList, TileBag *tileBag, GameBoard *board, unsigned int randSeed, bool versusAI, bool colourMode);
+void printScores(std::vector<Player> playerList, TileBag *tileBag, GameBoard* GameBoard, bool &quit, bool colourMode);
 std::string handleInput(bool &quit);
 
 int main(int argc, char **argv)
 {
   bool quit = false;
   bool versusAI = false;
+  bool colourMode = false;
   int randSeed = (unsigned int)time(NULL);
   
   if (argc > 1) {
@@ -54,42 +57,14 @@ int main(int argc, char **argv)
     if (std::string(argv[1]) == "--ai"){
     versusAI = true;
     }
-  }
-
-  displayWelcomeMessage();
-
-  while (!quit && !versusAI)
-  {
-    displayMainMenu();
-    std::string input = handleInput(quit);
-
-    if(!quit) {
-      // Convert input to an integer
-      try
-      {
-        int choice = std::stoi(input);
-        handleMenuChoice(choice, quit, randSeed);
-      }
-      catch (const std::invalid_argument &)
-      {
-        std::cout << "Invalid input. Please enter a number between 1 and 4." << std::endl;
-      }
-      catch (const std::out_of_range &)
-      {
-        std::cout << "Invalid input. Number is out of range. Please enter a number between 1 and 4." << std::endl;
-      }
-    }  
-    if(quit) {
-      std::cout << "Goodbye!" << std::endl;
+    if (std::string(argv[1]) == "--colour"){
+    colourMode = true;
     }
   }
 
-  if (versusAI){
-    std::cout << "- Versus AI Mode -" << std::endl;
-    startNewGameAI(quit, randSeed);
-    // startNewGameAI(quit, 1); // REMOVE AFTER TESTING COMPELTE
-  }
-
+  displayWelcomeMessage();
+  mainMenu(quit, randSeed, versusAI, colourMode);
+  
   return EXIT_SUCCESS;
 }
 
@@ -104,15 +79,104 @@ void displayMainMenu()
   std::cout << "Menu" << std::endl;
   std::cout << "1. New Game" << std::endl;
   std::cout << "2. Load Game" << std::endl;
-  std::cout << "3. Credits" << std::endl;
-  std::cout << "4. Quit" << std::endl;
+  std::cout << "3. Game Options" << std::endl;
+  std::cout << "4. Credits" << std::endl;
+  std::cout << "5. Quit" << std::endl;
   std::cout << "> ";
 }
 
-void startNewGame(bool &quit, unsigned int randSeed)
+void gameOptions(int randSeed, bool versusAI, bool colourMode){
+  std::string optionStatusAI = "\x1b[41mOff\x1b[0m";
+  std::string optionStatusColour = "\x1b[41mOff\x1b[0m";
+  bool quit = false;
+  bool toggleAI = false;
+  bool toggleColour = false;
+
+  if (versusAI){
+    optionStatusAI = "\x1b[42mOn\x1b[0m";
+    toggleAI = true;
+  }
+  if (colourMode){
+    optionStatusColour = "\x1b[42mOn\x1b[0m";
+    toggleColour = true;
+  }
+  std::cout << "Game Options" << std::endl;
+  std::cout << "1. Play versus AI - Status: " << optionStatusAI << std::endl;
+  std::cout << "2. Toggle Game Colour On/Off  - Status: " << optionStatusColour << std::endl;
+  std::cout << "3. Return to main menu" << std::endl;
+  std::cout << "> ";
+  std::string input = handleInput(quit);
+  int choice = std::stoi(input);
+
+  if (choice == 1)
+  {
+    if (versusAI){
+    toggleAI = false;
+    } else {
+    toggleAI = true;
+    }
+    gameOptions(randSeed, toggleAI, toggleColour);
+  }
+  else if (choice == 2)
+  {
+    if (colourMode){
+    toggleColour = false;
+    } else {
+    toggleColour = true;
+    }
+    gameOptions(randSeed, toggleAI, toggleColour);
+  }
+  else if (choice == 3)
+  {
+    mainMenu(quit, randSeed, toggleAI, toggleColour);
+  }  
+  else
+  {
+    std::cout << "Invalid choice. Please select an option between 1 and 3." << std::endl;
+  }
+}
+
+void mainMenu(bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColour){
+  while (!quit)
+  {
+    if(!quit) {
+      displayMainMenu();
+      std::string input = handleInput(quit);
+      
+      try
+      {
+        // Convert input to an integer
+        int choice = std::stoi(input);
+        handleMenuChoice(choice, quit, randSeed, toggleAI, toggleColour);
+      }
+      catch (const std::invalid_argument &)
+      {
+        std::cout << "Invalid input. Please enter a number between 1 and 4." << std::endl;
+      }
+      catch (const std::out_of_range &)
+      {
+        std::cout << "Invalid input. Number is out of range. Please enter a number between 1 and 4." << std::endl;
+      }
+    }  
+    if(quit) {
+      std::cout << "Goodbye!" << std::endl;
+      exit(EXIT_SUCCESS);
+    }
+  }
+}
+
+void startNewGame(bool &quit, unsigned int randSeed,  bool versusAI, bool colourMode)
 {
+  if (versusAI){
+    startNewGameAI(quit, randSeed, versusAI, colourMode);
+  }
+
   std::vector<Player> playerList;
   int numPlayers = 0; 
+
+  if (versusAI && numPlayers == 0){
+    return;
+  }
 
   while (numPlayers == 0){
     std::cout << "Please select number of players (2-4)" << std::endl;
@@ -120,8 +184,16 @@ void startNewGame(bool &quit, unsigned int randSeed)
     std::string selection = handleInput(quit); 
     if (std::stoi(selection) >1 && std::stoi(selection) <5){
       numPlayers = std::stoi(selection);
+    } else {
+      std::cout << "Invalid selection. Please enter a number between 2 and 4." << std:: endl;
     }
   }
+
+  GameBoard gameBoard(NUM_BOARD_ROWS, NUM_BOARD_COLS);
+
+  TileBag tileBag;
+  // Shuffle the tile bag
+  tileBag.shuffle(randSeed);
 
   for (int i = 0; i < numPlayers; i++){
 
@@ -135,46 +207,26 @@ void startNewGame(bool &quit, unsigned int randSeed)
         playerName = handleInput(quit);
       }
     playerList.push_back(playerName);
-  }
-  Player player1(playerList[0].getName());
-  Player player2(playerList[1].getName());
-  Player player3(playerList[0].getName());
-  Player player4(playerList[0].getName());
-  if (numPlayers > 2){
-    player3 = playerList[2].getName();
-  }
-  if (numPlayers > 3){
-    player4 = playerList[3].getName();
+    playerList[i].drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
   }
 
-  
-  GameBoard gameBoard(NUM_BOARD_ROWS, NUM_BOARD_COLS);
-
-  TileBag tileBag;
-  // Shuffle the tile bag
-  tileBag.shuffle(randSeed);
+  // Instantiates the 1st player as the player to go first
+  Player currentPlayer = playerList[0];
 
   std::cout << "Let's Play!" << std::endl;
 
-  // Draws 6 tiles for each player to start the game
-  player1.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
-  player2.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
-  if (numPlayers > 2){
-    player3.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
-  }
-  if (numPlayers > 3){
-    player4.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
-  }
-
-  // Primary functions used to run recursive gameplay operations
-  gameLoop(&player1, &player2, &tileBag, &gameBoard); 
-  /* Need to decide how I want to handle call to gameLoop - whether I modify to include P3 + P4 
-  * (eventually maybe p3/p4 AI too) OR just make a new "gameLoopExtended" for P3 + P4 inclusion
-  */ 
+  gameLoop(currentPlayer, playerList, &tileBag, &gameBoard, randSeed, versusAI, colourMode); 
 }
 
-void startNewGameAI(bool &quit, unsigned int randSeed)
+void startNewGameAI(bool &quit, unsigned int randSeed, bool versusAI, bool colourMode)
 {
+  std::vector<Player> playerList; 
+  GameBoard gameBoard(NUM_BOARD_ROWS, NUM_BOARD_COLS);
+  TileBag tileBag;
+  // Shuffle the tile bag
+  tileBag.shuffle(randSeed);
+  
+  std::cout << "Starting a new game - AI ENABLED - " << std::endl;
   std::cout << "Enter a name for player 1 (uppercase characters only)" << std::endl;
   std::cout << "> ";
   std::string player1Name = handleInput(quit);
@@ -190,21 +242,19 @@ void startNewGameAI(bool &quit, unsigned int randSeed)
 
   Player player1(player1Name);
   Player player2("AI");
-  
-  GameBoard gameBoard(NUM_BOARD_ROWS, NUM_BOARD_COLS);
 
-  TileBag tileBag;
-  // Shuffle the tile bag
-  tileBag.shuffle(randSeed);
+  playerList.push_back(player1);
+  playerList[0].drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
+
+  playerList.push_back(player2);
+  playerList[1].drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
 
   std::cout << "Let's Play!" << std::endl;
 
-  // Draws 6 tiles for each player to start the game
-  player1.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
-  player2.drawQuantityTiles(&tileBag, STARTING_HAND_SIZE);
+  Player currentPlayer = playerList[0];
 
   // Primary functions used to run recursive gameplay operations
-  gameLoop(&player1, &player2, &tileBag, &gameBoard);
+  gameLoop(currentPlayer, playerList, &tileBag, &gameBoard, randSeed, versusAI, colourMode);
 }
 
 void loadGame(bool& quit) {
@@ -241,10 +291,10 @@ void loadGame(bool& quit) {
 
       if (currentPlayer->getName() == loadedPlayer1->getName())
       {
-        gameLoop(loadedPlayer1, loadedPlayer2, loadedTileBag, loadedBoard);
+        // gameLoop(loadedPlayer1, loadedPlayer2, loadedTileBag, loadedBoard, randSeed, versusAI, colourMode); // TEMP DISABLE
       } else
       {
-        gameLoop(loadedPlayer2, loadedPlayer1, loadedTileBag, loadedBoard);
+        // gameLoop(loadedPlayer2, loadedPlayer1, loadedTileBag, loadedBoard, randSeed, versusAI, colourMode); // TEMP DISABLE
       }
     }
     
@@ -255,29 +305,29 @@ void loadGame(bool& quit) {
     delete currentPlayer;
 }
 
-void playTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gameBoard, bool &quit)
+void playTurn(Player &player, std::vector<Player> &playerList, TileBag *tileBag, GameBoard *gameBoard, bool &quit, bool colourMode)
 {
   bool validInput = false;
   while (!validInput && !quit)
   {
-    std::cout << gameBoard->displayBoard() << std::endl;
-    std::cout << "Tiles in hand: " << player->getHand()->toString() << std::endl;
-    std::cout << "Your move " << player->getName() << ": ";
+    std::cout << gameBoard->displayBoard(colourMode) << std::endl;
+    std::cout << "Tiles in hand: " << player.getHand()->toString() << std::endl;
+    std::cout << "Your move " << player.getName() << ": ";
     std::string playerMove = handleInput(quit);
 
     if (playerMove == "quit" || quit)
     {
-      quit = true;
+        quit = true;
     }
     else if (playerMove == "save")
     {
-      // Implement save game logic
-      std::cout << "Enter filename to save: ";
-      std::string filename = handleInput(quit);
-      
-      FileHandler fileHandler;
-      fileHandler.saveGame(filename, player, opponent, tileBag, gameBoard, player);
-      std::cout << "Game saved to " << filename << std::endl;
+        // Implement save game logic
+        std::cout << "Enter filename to save: ";
+        std::string filename = handleInput(quit);
+        
+        // FileHandler fileHandler;  // TEMP DISABLE
+        // fileHandler.saveGame(filename, player, opponent, tileBag, gameBoard, player); // TEMP DISABLE
+        std::cout << "Game saved to " << filename << std::endl;
     }
     else if (playerMove.substr(0, 7) == "replace")
     {
@@ -288,32 +338,32 @@ void playTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gam
         char colour = tileToReplace[0];
         int shape = tileToReplace[1] - '0';
         Tile *tile = new Tile(colour, shape);
-        Tile *removedTile = player->removeTileFromHand(tile);
+        Tile *removedTile = player.removeTileFromHand(tile);
         if (removedTile != nullptr)
         {
-          std::cout << removedTile->print() << " tile removed from hand and added to the bag." << std::endl;
-          delete removedTile;
-          tileBag->addTile(tile);
-          Tile *newTile = tileBag->drawTile();
-          if (newTile != nullptr)
-          {
-            player->addTileToHand(newTile);
-            std::cout << newTile->print() << " tile drawn and added to your hand." << std::endl;
-          }
-          else
-          {
-            std::cout << "No tiles left to draw from the tile bag." << std::endl;
-          }
-          validInput = true;
+            std::cout << removedTile->print() << " tile removed from hand and added to the bag." << std::endl;
+            delete removedTile;
+            tileBag->addTile(tile);
+            Tile *newTile = tileBag->drawTile();
+            if (newTile != nullptr)
+            {
+                player.addTileToHand(newTile);
+                std::cout << newTile->print() << " tile drawn and added to your hand." << std::endl;
+            }
+            else
+            {
+                std::cout << "No tiles left to draw from the tile bag." << std::endl;
+            }
+            validInput = true;
         }
         else
         {
-          std::cout << "You don't have that tile in your hand." << std::endl;
+            std::cout << "You don't have that tile in your hand." << std::endl;
         }
       }
       else
       {
-        std::cout << "Invalid tile format. Use <colour><shape>." << std::endl;
+          std::cout << "Invalid tile format. Use <colour><shape>." << std::endl;
       }
     }
     else
@@ -324,7 +374,7 @@ void playTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gam
 
       while (stringstream >> extractedWord)
       {
-        moveBreakdown.push_back(extractedWord);
+          moveBreakdown.push_back(extractedWord);
       }
 
       if (moveBreakdown.size() == 4 && moveBreakdown[0] == "place" && moveBreakdown[2] == "at")
@@ -339,94 +389,90 @@ void playTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gam
         Tile* tile = new Tile(tileColour, tileShape);
 
         // Checks if the tile exists in the player's hand
-        if (player->containsTile(tile)) 
+        if (player.containsTile(tile)) 
         {
-          if (Rules::validateMove(gameBoard, tile, row, col))
-          {
-            gameBoard->placeTile(row, col, tile);
-            Tile* removedTile = player->removeTileFromHand(tile);
-            if (removedTile != nullptr)
+            if (Rules::validateMove(gameBoard, tile, row, col))
             {
-              delete removedTile;
-              Tile* newTile = tileBag->drawTile();
-              if (newTile != nullptr)
-              {
-                player->addTileToHand(newTile);
-              }
-              int score = Rules::calculateScore(gameBoard, row, col);
-              player->setScore(player->getScore() + score);
-              if (score > 6)
-              {
-                std::cout << "QWIRKLE!!!" << std::endl;
-              }
-              validInput = true;
+                // Place the tile on the board
+                gameBoard->placeTile(row, col, tile);
+
+                // Remove the tile from the player's hand
+                Tile* removedTile = player.removeTileFromHand(tile);
+                if (removedTile != nullptr)
+                {
+                    delete removedTile;
+
+                    // Draw a new tile from the bag
+                    Tile* newTile = tileBag->drawTile();
+                    if (newTile != nullptr)
+                    {
+                        player.addTileToHand(newTile);
+                    }
+
+                    // Calculate the score for this move
+                    int score = Rules::calculateScore(gameBoard, row, col, player.getName());
+                    player.setScore(player.getScore() + score);
+
+                    std::cout << "Score for this move: " << score << std::endl;
+                    std::cout << "Total score for " << player.getName() << ": " << player.getScore() << std::endl;
+
+                    validInput = true;
+                }
+                else
+                {
+                    std::cout << "Error: Failed to remove tile from hand." << std::endl;
+                }
             }
             else
             {
-              std::cout << "Error: Failed to remove tile from hand." << std::endl;
+                std::cout << "Invalid move. Try making a valid move using the command 'place <tile> at <board location>'" << std::endl;
+                delete tile;
             }
-          }
-          else
-          {
-            std::cout << "Invalid move. Try again." << std::endl;
-            delete tile;
-          }
         } 
         else 
         {
-          std::cout << "You don't have that tile in your hand." << std::endl;
-          delete tile;
+            std::cout << "You don't have that tile in your hand." << std::endl;
+            delete tile;
         }
       }
       else
       {
-        std::cout << "Invalid move format. Use 'place <tile> at <position>'." << std::endl;
+          std::cout << "Invalid move format. Use 'place <tile> at <position>'." << std::endl;
       }
     }
   }
 }
 
 
-void gameLoop(Player *player1, Player *player2, TileBag *tileBag, GameBoard* gameBoard)
-{
-  int turn = 0;
-  bool quit = false;
-  while (!quit)
-  {
-    // If game is AI vs AI this ensures player 1 makes a valid 1st move
-    if (player1->getName() == "AI" && turn == 0){
-      printScores(player1, player2, tileBag, gameBoard, quit);
-      playAIFirstTurn(player1, player2, tileBag, gameBoard, quit);
-    }
+// new gameloop
+void gameLoop(Player currentPlayer, std::vector<Player> playerList, TileBag *tileBag, GameBoard *gameBoard, unsigned int randSeed, bool versusAI, bool colourMode) {
+    int turn = 0;
+    bool quit = false;
+    int numPlayers = playerList.size();
 
-    if (!quit && player1->getName() != "AI")
-    {
-      printScores(player1, player2, tileBag, gameBoard, quit);
-      playTurn(player1, player2, tileBag, gameBoard, quit);
-    } else {
-      // Calling to specific function with AI turn logic
-      if (player1->getName() == "AI" && turn >0 && !quit){
-        printScores(player1, player2, tileBag, gameBoard, quit);
-        playAITurn(player1, player2, tileBag, gameBoard, quit);
-      }
+    while (!quit) {
+        for (int i = 0; i < numPlayers; i++) {
+            Player &player = playerList[i];
+            printScores(playerList, tileBag, gameBoard, quit, colourMode);
+
+            if (player.getName() == "AI" && gameBoard->isEmpty()) {
+                playAIFirstTurn(&player, &playerList[(i + 1) % numPlayers], tileBag, gameBoard, quit);
+            } else if (!quit && player.getName() != "AI") {
+                playTurn(player, playerList, tileBag, gameBoard, quit, colourMode);
+            } else if (!quit) {
+                playAITurn(&player, &playerList[(i + 1) % numPlayers], tileBag, gameBoard, quit, randSeed, versusAI, colourMode);
+            }
+
+            if (quit) {
+                break;
+            }
+        }
+
+        turn++;
     }
-    
-    if (!quit && player2->getName() != "AI")
-    {
-      printScores(player1, player2, tileBag, gameBoard, quit);
-      playTurn(player2, player1, tileBag, gameBoard, quit);
-    }
-    else {
-      // Calling to specific function with AI turn logic
-      if (!quit){
-        playAITurn(player2, player1, tileBag, gameBoard, quit);
-      }      
-    }
-    turn++;
-  }
 }
 
-// Structures used to contain information related to potential moves for AI players
+// Structure is used to contain requisite information related to potential moves for AI players
 struct AIMoveList {
   Tile* tile;
   int row;
@@ -438,14 +484,12 @@ struct AIMoveList {
 
 void playAIFirstTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gameBoard, bool &quit){
   LinkedList* playerHand = player->getHand();
-  
-  std::cout << "ATTEMPTING TO PLACE FIRST TILE FOR AI." << std::endl;
-
   char tileColour = playerHand->get(0)->getColour();
   char tileShape = playerHand->get(0)->getShape();
   Tile* tile = new Tile(tileColour,tileShape);
-  gameBoard->placeTile(13,13,tile);
+  gameBoard->placeTile(9,9,tile);
   Tile* removedTile = player->removeTileFromHand(tile);
+
   if (removedTile != nullptr)
   {
     delete removedTile;
@@ -454,61 +498,45 @@ void playAIFirstTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoa
     {
       player->addTileToHand(newTile);
     }
-    int score = Rules::calculateScore(gameBoard, 13,13);
+    int score = Rules::calculateScore(gameBoard, 13,13, player->getName());
     player->setScore(player->getScore() + score);
-    if (score > 6)
-    {
-      std::cout << "QWIRKLE!!!" << std::endl;
-    }
   }
-
 }
 
-void playAITurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gameBoard, bool &quit)
+void playAITurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gameBoard, bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColour)
 {
-
   std::vector<AIMoveList> validMoves;
   LinkedList* playerHand = player->getHand();
 
   if (!playerHand->getLength()){
-    std::cout << "I hope you enjoyed playing qwirkle versus AI. Please re-launch the application with \"./qwirkle.exe --ai\" to play again with AI enabled." << std::endl << std::endl << "Exiting application...." << std::endl;
     return;
   }
-
   for (int row = 0; row < 26; row++){
     for (int col = 0; col < 26; col++){
       if (gameBoard->getTile(row,col) != nullptr){
-        // std::cout << "TILE FOUND AT : " << row << " " << col << std::endl;
-        // std::cout << "tileOptions size: " << playerHand->getLength() << std::endl;
         for (int tileOption = 0; tileOption < playerHand->getLength(); tileOption++){
           char tileColour = playerHand->get(tileOption)->getColour();
           char tileShape = playerHand->get(tileOption)->getShape();
           int score = 0;
           Tile* tile = new Tile (tileColour,tileShape);
-
-          // std::cout << "Player hand, tile option: " << tileOption << " - is: " << tile->print() << std::endl;
           
           if (Rules::validateMove(gameBoard, tile, row+1, col)){
-            // std::cout << "Valid move found at Row:" << row+1 << ", Col: " << col <<  "." << std::endl; 
-            score = Rules::calculateScore(gameBoard, row+1, col);
+            score = Rules::calculateScore(gameBoard, row+1, col, player->getName());
             validMoves.push_back(AIMoveList(tile, row+1, col, score));          
           }
 
           if (Rules::validateMove(gameBoard, tile, row-1, col)){
-            // std::cout << "Valid move found at Row:" << row-1 << ", Col: " << col <<  "." << std::endl; 
-            score = Rules::calculateScore(gameBoard, row-1, col);
+            score = Rules::calculateScore(gameBoard, row-1, col, player->getName());
             validMoves.push_back(AIMoveList(tile, row-1, col, score));  
           }
 
           if (Rules::validateMove(gameBoard, tile, row, col+1)){
-            // std::cout << "Valid move found at Row:" << row << ", Col: " << col+1 <<  "." << std::endl;
-            score = Rules::calculateScore(gameBoard, row, col+1);
+            score = Rules::calculateScore(gameBoard, row, col+1, player->getName());
             validMoves.push_back(AIMoveList(tile, row, col+1, score));   
           }
 
           if (Rules::validateMove(gameBoard, tile, row, col-1)){
-            // std::cout << "Valid move found at Row:" << row << ", Col: " << col-1 <<  "." << std::endl; 
-            score = Rules::calculateScore(gameBoard, row, col-1);
+            score = Rules::calculateScore(gameBoard, row, col-1, player->getName());
             validMoves.push_back(AIMoveList(tile, row, col-1, score));  
           }
         }        
@@ -521,21 +549,16 @@ void playAITurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* g
   int moveListSize = validMoves.size();
 
   for (int i = 0; i < moveListSize; i++){
-  // std::cout << "Move " << i << ": is " << validMoves[i].tile->print() << " - Score: " << validMoves[i].score << std::endl;
     if (validMoves[i].score > highestScore){
-      // std::cout << "New high score! for move " << i << " with a value of: " << validMoves[i].score << std::endl;
       highestScore = validMoves[i].score;
       highestScoreIndexValue = i;
     }
   }
 
-  // std::cout << "The move with the highest score was: " << validMoves[highestScoreIndexValue].tile->print() << " and the highest score was " << highestScore << " at ROW " << validMoves[highestScoreIndexValue].row << ", COL " << validMoves[highestScoreIndexValue].col << std::endl;
   std::cout << "AI Player's hand: " << playerHand->toString() << std::endl;
 
   // Replace first tile in hand if no moves available
   if (moveListSize == 0 && !quit && playerHand->getLength() > 0){
-
-    std::cout << "ATTEMPTING TO REPLACE TILE FOR AI." << std::endl;
 
     char tileColour = playerHand->get(0)->getColour();
     char tileShape = playerHand->get(0)->getShape();
@@ -570,12 +593,8 @@ void playAITurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* g
       {
         player->addTileToHand(newTile);
       }
-      int score = Rules::calculateScore(gameBoard, validMoves[highestScoreIndexValue].row, validMoves[highestScoreIndexValue].col);
+      int score = Rules::calculateScore(gameBoard, validMoves[highestScoreIndexValue].row, validMoves[highestScoreIndexValue].col, player->getName());
       player->setScore(player->getScore() + score);
-      if (score > 6)
-      {
-        std::cout << "QWIRKLE!!!" << std::endl; // REMOVE AND ADD TO RULES -  THIS IS ACTUALLY INCORRECT SCORING
-      }
     }
     else
     {
@@ -594,11 +613,11 @@ void showCredits()
   std::cout << "---------------------------------------" << std::endl;
 }
 
-void handleMenuChoice(int choice, bool &quit, unsigned int randSeed)
+void handleMenuChoice(int choice, bool &quit, unsigned int randSeed, bool versusAI, bool colourMode)
 {
   if (choice == 1)
   {
-    startNewGame(quit, randSeed);
+    startNewGame(quit, randSeed, versusAI, colourMode);
   }
   else if (choice == 2)
   {
@@ -606,32 +625,48 @@ void handleMenuChoice(int choice, bool &quit, unsigned int randSeed)
   }
   else if (choice == 3)
   {
-    showCredits();
-  }
+    gameOptions(randSeed, versusAI, colourMode);
+  }  
   else if (choice == 4)
   {
+    showCredits();
+  }
+  else if (choice == 5)
+  {
     quit = true;
+    return;
   }
   else
   {
-    std::cout << "Invalid choice. Please try again." << std::endl;
+    std::cout << "Invalid choice. Please enter a menu choice between 1 and 5." << std::endl;
   }
 }
 
-void printScores(Player* player1, Player* player2, TileBag *tileBag, GameBoard *gameBoard, bool &quit) {
-    if (Rules::isGameOver(player1, player2, tileBag))
+void printScores(std::vector<Player> playerList, TileBag *tileBag, GameBoard *gameBoard, bool &quit, bool colourMode) {
+    int listSize = playerList.size();
+
+    if (Rules::isGameOver(playerList, tileBag))
     {
-      std::cout << gameBoard->displayBoard() << std::endl;
-      Player* winner = player1->getScore() > player2->getScore() ? player1 : player2;
+      std::cout << gameBoard->displayBoard(colourMode) << std::endl;
+      Player winner = playerList[0];
+
+      for (int i = 1; i < listSize; i++){
+        if (playerList[i].getScore() > winner.getScore()){
+          winner = playerList[i];
+        }
+      }
+
       std::cout << "\nGame over!" << std::endl;
-      std::cout << "The winner is " << winner->getName() << " with a score of " << winner->getScore() << "!\n" << std::endl;
+      std::cout << "The winner is " << winner.getName() << " with a score of " << winner.getScore() << "!\n" << std::endl;
       
       quit = true;
       return;
     }
     std::cout << std::endl; 
-    std::cout << "Score for " << player1->getName() << ": " << player1->getScore() << std::endl;
-    std::cout << "Score for " << player2->getName() << ": " << player2->getScore() << std::endl;
+
+    for (int i = 0; i < listSize; i++){
+      std::cout << "Score for " << playerList[i].getName() << ": " << playerList[i].getScore() << std::endl;
+    }
 }
 
 std::string handleInput(bool &quit)

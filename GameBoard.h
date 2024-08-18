@@ -28,8 +28,8 @@ public:
  // Get the tile at a specific position
  Tile* getTile(int row, int col) const;
 
- // Display the board
- std::string displayBoard() const;
+ // Display the board with game mode colour toggle 
+ std::string displayBoard(bool colourMode) const;
 
  // Getters for rows and cols
  int getRows() const;

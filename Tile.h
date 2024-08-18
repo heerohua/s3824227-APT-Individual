@@ -29,9 +29,17 @@ public:
     // Function to check if the tile has a match by color or shape
     std::string matchType(const Tile& other);
 
+    // Function to convert tile the colour for minor milestone
+    std::string tileStringToColour() const;
+
+    // Function to select the correct colour ANSI colour scheme for tiles
+    std::string tileStringColourOptions() const;
+
+
 private:
     Colour colour;
     Shape shape;
 };
+
 
 #endif // ASSIGN2_TILE_H

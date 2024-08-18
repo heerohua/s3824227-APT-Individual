@@ -5,9 +5,10 @@ bool Rules::validateMove(GameBoard* board, Tile* tile, int x, int y) {
     return isValidPlacement(board, tile, x, y);
 }
 
-int Rules::calculateScore(GameBoard* board, int x, int y) {
+int Rules::calculateScore(GameBoard* board, int x, int y, std::string playerName) {
     int rowTiles = 1;
     int colTiles = 1;
+
 
     // Check horizontal (row) tiles
     for (int i = x - 1; i >= 0 && board->getTile(i, y) != nullptr; --i) {
@@ -37,9 +38,18 @@ int Rules::calculateScore(GameBoard* board, int x, int y) {
     // Check for QWIRKLEs and add bonus points if applicable
     if (rowTiles == 6) {
         score += 6;
+        // Disables announce for AI to reduce spam when checking viable moves
+        if (playerName != "AI"){
+            std::cout << "QWIRKLE!!!" << std::endl;
+        }
+
     }
     if (colTiles == 6) {
         score += 6;
+        // Disables announce for AI to reduce spam when checking viable moves
+        if (playerName != "AI"){
+            std::cout << "QWIRKLE!!!" << std::endl;
+        }
     }
 
     // If this is the first move, add one point
@@ -50,10 +60,21 @@ int Rules::calculateScore(GameBoard* board, int x, int y) {
     return score;
 }
 
+bool Rules::isGameOver(std::vector<Player> playerList, TileBag* tileBag) {
+    int listSize = playerList.size();
 
-
-bool Rules::isGameOver(Player* player1, Player* player2, TileBag* tileBag) {
-    return (player1->getHand()->getHead() == nullptr && player2->getHand()->getHead() == nullptr) && tileBag->isEmpty();
+    // If any players still have a tile in their hand, the game is not yet over
+    for (int i = 0; i < listSize; i++){
+      if (playerList[i].getHand()->getHead() != nullptr){
+        return false;
+      }
+    }
+    // If any tiles remain in the bag, the game is not yet over
+    if (!tileBag->isEmpty()){
+        return false;
+    }
+    // If both above checks aren't flagged, then the gameOver conditions are met
+    return true;
 }
 
 bool Rules::isValidPlacement(GameBoard* board, Tile* tile, int x, int y) {

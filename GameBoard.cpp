@@ -121,7 +121,7 @@ int GameBoard::getCols() const {
 
 
 // Display the board as a string
-std::string GameBoard::displayBoard() const {
+std::string GameBoard::displayBoard(bool colourMode) const {
     std::string output;
     std::string dashes = "\n--";
 
@@ -145,15 +145,20 @@ std::string GameBoard::displayBoard() const {
         output += std::string(1, 'A' + row) + "|";
         for (int col = 0; col < cols; ++col) {
             if (board[row][col] != nullptr) {
+              // Prints the board output with colour on/off depending on game mode toggle
+              if (!colourMode){
                 output += board[row][col]->getColour();
                 output += std::to_string(board[row][col]->getShape()) + "|";
+              } else {
+                output += board[row][col]->tileStringToColour() + "|";
+              }
             } else {
                 output += "  |";
             }
         }
         output += "\n";
     }
-
+    
     return output;
 }
 
