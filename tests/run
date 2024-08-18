@@ -13,4 +13,10 @@ echo "Running game-end test"
 echo "Running qwirkle test"
 ./tests/qwirkle/test &&
 echo "Running line-validation test"
-./tests/line-validation/test;
+./tests/line-validation/test &&
+echo "Running AI mode test"
+./tests/ai-game/test &&
+echo "Running multiplayer test"
+./tests/multiplayer/test &&
+echo "Running colour mode test"
+./tests/colour-mode/test;

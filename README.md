@@ -24,6 +24,9 @@ Or run individually:<br>
  `chmod +x ./tests/save-game/test && ./tests/save-game/test` Test saving game<br>
  `chmod +x ./tests/game-end/test && ./tests/game-end/test` Test game ends when tiles run out<br>
  `chmod +x ./tests/line-validation/test && ./tests/line-validation/test` Test tile placement is valid based on neighboring tiles<br>
+ `chmod +x ./tests/ai-game/test && ./tests/ai-game/test` Test game utilising the AI game enhancement turned on<br>
+ `chmod +x ./tests/multiplayer/test && ./tests/multiplayer/test` Testing game utilising the multiplayher game enhancement turned on with 4 players<br>
+ `chmod +x ./tests/game-colour/test && ./tests/game-colour/test` Test game with the game-colour enhancement turned on<br>
 
 # Milestone 3 - Gameplay Enhancements Completed
 - MAJOR: Player1 versus AI (alt) AI versus AI (supports 2-4 player AI games)
@@ -93,3 +96,5 @@ Or run individually:<br>
 - Updated to latest commands with 'chmod +x' on whole test suite to ensure tests have permission to run
 - Updated existing test suite to accomodate new game modes and changes to game/menu structure
 - Updated Save Game and Load Game functionality to work with new game modes and enhancements
+- Created new game tests for AI game mode, Multiplayer game mode, and Colour game mode enhancements. 
+- Appended new tests to existing suite and can be run automatically by using ./tests/run
