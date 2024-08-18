@@ -1,3 +1,5 @@
+ColourMode:false
+VersusAI:false
 ALICE
 0
 B6,G2

@@ -3,8 +3,9 @@ Welcome to Qwirkle!
 Menu
 1. New Game
 2. Load Game
-3. Credits
-4. Quit
+3. Game Options
+4. Credits
+5. Quit
 > 
 Enter the filename from which to load a game:
 > 
@@ -23,7 +24,7 @@ F|  |  |  |  |  |  |
 
 Tiles in hand: B2, B1, P2, P4
 Your move ALICE: 
-Invalid move. Try again.
+Invalid move. Try making a valid move using the command 'place <tile> at <board location>'
    0  1  2  3  4  5  
 --------------------
 A|  |  |  |  |  |  |
@@ -35,6 +36,8 @@ F|  |  |  |  |  |  |
 
 Tiles in hand: B2, B1, P2, P4
 Your move ALICE: 
+Score for this move: 2
+Total score for ALICE: 2
 
 Score for ALICE: 2
 Score for BOB: 0
@@ -49,6 +52,8 @@ F|  |  |  |  |  |  |
 
 Tiles in hand: B4, P1, B2, O1
 Your move BOB: 
+Score for this move: 2
+Total score for BOB: 2
 
 Score for ALICE: 2
 Score for BOB: 2
@@ -63,7 +68,7 @@ F|  |  |  |  |  |  |
 
 Tiles in hand: B2, P2, P4
 Your move ALICE: 
-Invalid move. Try again.
+Invalid move. Try making a valid move using the command 'place <tile> at <board location>'
    0  1  2  3  4  5  
 --------------------
 A|  |  |  |  |  |  |
@@ -75,6 +80,8 @@ F|  |  |  |  |  |  |
 
 Tiles in hand: B2, P2, P4
 Your move ALICE: 
+Score for this move: 4
+Total score for ALICE: 6
 
 Score for ALICE: 6
 Score for BOB: 2
@@ -89,7 +96,7 @@ F|  |  |  |  |  |  |
 
 Tiles in hand: P1, B2, O1
 Your move BOB: 
-Invalid move. Try again.
+Invalid move. Try making a valid move using the command 'place <tile> at <board location>'
    0  1  2  3  4  5  
 --------------------
 A|  |  |  |  |  |  |
@@ -101,7 +108,7 @@ F|  |  |  |  |  |  |
 
 Tiles in hand: P1, B2, O1
 Your move BOB: 
-Invalid move. Try again.
+Invalid move. Try making a valid move using the command 'place <tile> at <board location>'
    0  1  2  3  4  5  
 --------------------
 A|  |  |  |  |  |  |
@@ -113,6 +120,8 @@ F|  |  |  |  |  |  |
 
 Tiles in hand: P1, B2, O1
 Your move BOB: 
+Score for this move: 3
+Total score for BOB: 5
 
 Score for ALICE: 6
 Score for BOB: 5
@@ -130,7 +139,8 @@ Your move ALICE:
 Menu
 1. New Game
 2. Load Game
-3. Credits
-4. Quit
+3. Game Options
+4. Credits
+5. Quit
 > 
 Goodbye!

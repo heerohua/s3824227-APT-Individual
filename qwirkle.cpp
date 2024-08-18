@@ -24,13 +24,13 @@
 // Function prototypes
 void displayWelcomeMessage();
 void displayMainMenu();
-void gameOptions(int randSeed, bool versusAI, bool colourMode);
-void mainMenu(bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColour);
-void startNewGame(bool &quit,  bool versusAI, bool colourMode);
+void gameOptions(int randSeed, bool versusAI, bool colourMode, bool multiplayerMode);
+void mainMenu(bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColour, bool toggleMultiplayer);
+void startNewGame(bool &quit,  bool versusAI, bool colourMode, bool multiplayerMode);
 void startNewGameAI(bool &quit, unsigned int randSeed, bool versusAI, bool colourMode);
-void loadGame(bool &quit);
+void loadGame(bool& quit, unsigned int randSeed);
 void showCredits();
-void handleMenuChoice(int choice, bool &quit, unsigned int randSeed, bool versusAI, bool colourMode);
+void handleMenuChoice(int choice, bool &quit, unsigned int randSeed, bool versusAI, bool colourMode, bool multiplayerMode);
 void playTurn(Player player, std::vector<Player> playerList, TileBag *tileBag, GameBoard *board, bool &quit);
 void playAITurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard *board, bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColour);
 void playAIFirstTurn(Player *player, Player *opponent, TileBag *tileBag, GameBoard* gameBoard, bool &quit);
@@ -43,6 +43,7 @@ int main(int argc, char **argv)
   bool quit = false;
   bool versusAI = false;
   bool colourMode = false;
+  bool multiplayerMode = false;
   int randSeed = (unsigned int)time(NULL);
   
   if (argc > 1) {
@@ -60,10 +61,13 @@ int main(int argc, char **argv)
     if (std::string(argv[1]) == "--colour"){
     colourMode = true;
     }
+    if (std::string(argv[1]) == "--mp"){
+    multiplayerMode = true;
+    }
   }
 
   displayWelcomeMessage();
-  mainMenu(quit, randSeed, versusAI, colourMode);
+  mainMenu(quit, randSeed, versusAI, colourMode, multiplayerMode);
   
   return EXIT_SUCCESS;
 }
@@ -85,12 +89,15 @@ void displayMainMenu()
   std::cout << "> ";
 }
 
-void gameOptions(int randSeed, bool versusAI, bool colourMode){
+// This is the primary menu which enables users to toggle new features/ehancements on/off
+void gameOptions(int randSeed, bool versusAI, bool colourMode, bool multiplayerMode){
   std::string optionStatusAI = "\x1b[41mOff\x1b[0m";
   std::string optionStatusColour = "\x1b[41mOff\x1b[0m";
+  std::string optionStatusMultiplayer = "\x1b[41mOff\x1b[0m";
   bool quit = false;
   bool toggleAI = false;
   bool toggleColour = false;
+  bool toggleMultiplayer = false;
 
   if (versusAI){
     optionStatusAI = "\x1b[42mOn\x1b[0m";
@@ -100,10 +107,15 @@ void gameOptions(int randSeed, bool versusAI, bool colourMode){
     optionStatusColour = "\x1b[42mOn\x1b[0m";
     toggleColour = true;
   }
+  if (multiplayerMode){
+    optionStatusMultiplayer = "\x1b[42mOn\x1b[0m";
+    toggleMultiplayer = true;
+  }
   std::cout << "Game Options" << std::endl;
-  std::cout << "1. Play versus AI - Status: " << optionStatusAI << std::endl;
+  std::cout << "1. Play 1v1 versus AI - Status: " << optionStatusAI << std::endl;
   std::cout << "2. Toggle Game Colour On/Off  - Status: " << optionStatusColour << std::endl;
-  std::cout << "3. Return to main menu" << std::endl;
+  std::cout << "3. Toggle Multiplayer Game Mode On/Off  - Status: " << optionStatusMultiplayer << std::endl;
+  std::cout << "4. Return to main menu" << std::endl;
   std::cout << "> ";
   std::string input = handleInput(quit);
   int choice = std::stoi(input);
@@ -115,7 +127,7 @@ void gameOptions(int randSeed, bool versusAI, bool colourMode){
     } else {
     toggleAI = true;
     }
-    gameOptions(randSeed, toggleAI, toggleColour);
+    gameOptions(randSeed, toggleAI, toggleColour, toggleMultiplayer);
   }
   else if (choice == 2)
   {
@@ -124,19 +136,29 @@ void gameOptions(int randSeed, bool versusAI, bool colourMode){
     } else {
     toggleColour = true;
     }
-    gameOptions(randSeed, toggleAI, toggleColour);
+    gameOptions(randSeed, toggleAI, toggleColour, toggleMultiplayer);
   }
   else if (choice == 3)
   {
-    mainMenu(quit, randSeed, toggleAI, toggleColour);
+    if (multiplayerMode){
+    toggleMultiplayer = false;
+    } else {
+    toggleMultiplayer = true;
+    }
+    gameOptions(randSeed, toggleAI, toggleColour, toggleMultiplayer);
   }  
+  else if (choice == 4)
+  {
+    mainMenu(quit, randSeed, toggleAI, toggleColour, toggleMultiplayer);
+  } 
   else
   {
     std::cout << "Invalid choice. Please select an option between 1 and 3." << std::endl;
   }
 }
 
-void mainMenu(bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColour){
+// Revamped the Main Menu to help handle enhancement game state and take args to keep the state flowing between user choices
+void mainMenu(bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColour, bool toggleMultiplayer){
   while (!quit)
   {
     if(!quit) {
@@ -147,15 +169,15 @@ void mainMenu(bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColou
       {
         // Convert input to an integer
         int choice = std::stoi(input);
-        handleMenuChoice(choice, quit, randSeed, toggleAI, toggleColour);
+        handleMenuChoice(choice, quit, randSeed, toggleAI, toggleColour, toggleMultiplayer);
       }
       catch (const std::invalid_argument &)
       {
-        std::cout << "Invalid input. Please enter a number between 1 and 4." << std::endl;
+        std::cout << "Invalid input. Please enter a number between 1 and 5." << std::endl;
       }
       catch (const std::out_of_range &)
       {
-        std::cout << "Invalid input. Number is out of range. Please enter a number between 1 and 4." << std::endl;
+        std::cout << "Invalid input. Number is out of range. Please enter a number between 1 and 5." << std::endl;
       }
     }  
     if(quit) {
@@ -165,8 +187,10 @@ void mainMenu(bool &quit, unsigned int randSeed, bool toggleAI, bool toggleColou
   }
 }
 
-void startNewGame(bool &quit, unsigned int randSeed,  bool versusAI, bool colourMode)
+// Function called once a user makes the menu selection 'start new game'.
+void startNewGame(bool &quit, unsigned int randSeed,  bool versusAI, bool colourMode, bool multiplayerMode)
 {
+  // Hand off selection critera to 1v1 AI variant if "AI" mode is enabled
   if (versusAI){
     startNewGameAI(quit, randSeed, versusAI, colourMode);
   }
@@ -177,18 +201,26 @@ void startNewGame(bool &quit, unsigned int randSeed,  bool versusAI, bool colour
   if (versusAI && numPlayers == 0){
     return;
   }
-
-  while (numPlayers == 0){
-    std::cout << "Please select number of players (2-4)" << std::endl;
-    std::cout << "> ";
-    std::string selection = handleInput(quit); 
-    if (std::stoi(selection) >1 && std::stoi(selection) <5){
-      numPlayers = std::stoi(selection);
-    } else {
-      std::cout << "Invalid selection. Please enter a number between 2 and 4." << std:: endl;
+  // Only displays the multiplayer selection critera if multiplayer mode is enabled
+  if (multiplayerMode){
+    std::cout << "----------------------------------------------------------------------------" << std::endl;
+    std::cout << "> Starting a new game - MULTIPLAYER ENABLED                                -" << std::endl;
+    std::cout << "> TIP: enter the name 'AI' for any player you wish to be controlled by AI  -" << std::endl;
+    std::cout << "----------------------------------------------------------------------------" << std::endl;
+    while (numPlayers == 0){
+      std::cout << "Please select number of players (2-4)" << std::endl;
+      std::cout << "> ";
+      std::string selection = handleInput(quit); 
+      if (std::stoi(selection) >1 && std::stoi(selection) <5){
+        numPlayers = std::stoi(selection);
+      } else {
+        std::cout << "Invalid selection. Please enter a number between 2 and 4." << std:: endl;
+      }
     }
+  } else {
+    numPlayers = 2;
   }
-
+  // Initialises the game board to a 26x26 as pre-defined above
   GameBoard gameBoard(NUM_BOARD_ROWS, NUM_BOARD_COLS);
 
   TileBag tileBag;
@@ -218,6 +250,7 @@ void startNewGame(bool &quit, unsigned int randSeed,  bool versusAI, bool colour
   gameLoop(currentPlayer, playerList, &tileBag, &gameBoard, randSeed, versusAI, colourMode); 
 }
 
+// Handles the game initialisation if AI mode is enabled to force a 1v1 game versus AI
 void startNewGameAI(bool &quit, unsigned int randSeed, bool versusAI, bool colourMode)
 {
   std::vector<Player> playerList; 
@@ -226,7 +259,7 @@ void startNewGameAI(bool &quit, unsigned int randSeed, bool versusAI, bool colou
   // Shuffle the tile bag
   tileBag.shuffle(randSeed);
   
-  std::cout << "Starting a new game - AI ENABLED - " << std::endl;
+  std::cout << "Starting a new game - 1v1 versus AI ENABLED - " << std::endl;
   std::cout << "Enter a name for player 1 (uppercase characters only)" << std::endl;
   std::cout << "> ";
   std::string player1Name = handleInput(quit);
@@ -257,55 +290,47 @@ void startNewGameAI(bool &quit, unsigned int randSeed, bool versusAI, bool colou
   gameLoop(currentPlayer, playerList, &tileBag, &gameBoard, randSeed, versusAI, colourMode);
 }
 
-void loadGame(bool& quit) {
+void loadGame(bool& quit, unsigned int randSeed) {
+  std::cout << "Enter the filename from which to load a game:" << std::endl;
+  std::cout << "> ";
+  std::string filename = handleInput(quit);
 
-    std::cout << "Enter the filename from which to load a game:" << std::endl;
-    std::cout << "> ";
-    std::string filename = handleInput(quit);
+  if (!quit && !InputValidator::isFileNameValid(filename)) {
+      std::cerr << "Error: Invalid file name or format." << std::endl;
+      return;
+  }
 
-    if (!quit && !InputValidator::isFileNameValid(filename)) {
-        std::cerr << "Error: Invalid file name or format." << std::endl;
-        return;
-    }
+  FileHandler fileHandler;
 
-    FileHandler fileHandler;
+  if (!fileHandler.fileExists(filename)) {
+      std::cerr << "Error: File does not exist." << std::endl;
+      return;
+  }
 
-    if (!fileHandler.fileExists(filename)) {
-        std::cerr << "Error: File does not exist." << std::endl;
-        return;
-    }
+  // Load the game state
+  std::vector<Player> playerList;
+  TileBag* loadedTileBag = new TileBag();
+  GameBoard* loadedBoard = new GameBoard(); 
+  Player* currentPlayer = new Player("Current");
+  bool colourMode = false;
+  bool versusAI = false;
 
-    // Load the game state
-    Player* loadedPlayer1 = new Player("Temp1");
-    Player* loadedPlayer2 = new Player("Temp2");
-    TileBag* loadedTileBag = new TileBag();
-    GameBoard* loadedBoard = new GameBoard(); 
-    Player* currentPlayer = new Player("Current");
+  bool gameLoaded = fileHandler.loadGame(filename, playerList, loadedTileBag, loadedBoard, currentPlayer, colourMode, versusAI);
 
-    bool gameLoaded = fileHandler.loadGame(filename, loadedPlayer1, loadedPlayer2, loadedTileBag, loadedBoard, currentPlayer);
-    
-    if (!gameLoaded) {
-        std::cerr << "Error: Invalid file format." << std::endl;
-    } else {
+  if (!gameLoaded) {
+      std::cerr << "Error: Invalid file format." << std::endl;
+  } else {
       std::cout << "Qwirkle game successfully loaded" << std::endl;
 
-      if (currentPlayer->getName() == loadedPlayer1->getName())
-      {
-        // gameLoop(loadedPlayer1, loadedPlayer2, loadedTileBag, loadedBoard, randSeed, versusAI, colourMode); // TEMP DISABLE
-      } else
-      {
-        // gameLoop(loadedPlayer2, loadedPlayer1, loadedTileBag, loadedBoard, randSeed, versusAI, colourMode); // TEMP DISABLE
-      }
-    }
-    
-    delete loadedPlayer1;
-    delete loadedPlayer2;
-    delete loadedTileBag;
-    delete loadedBoard;
-    delete currentPlayer;
+      gameLoop(*currentPlayer, playerList, loadedTileBag, loadedBoard, randSeed, versusAI, colourMode);
+  }
+
+  delete loadedTileBag;
+  delete loadedBoard;
+  delete currentPlayer;
 }
 
-void playTurn(Player &player, std::vector<Player> &playerList, TileBag *tileBag, GameBoard *gameBoard, bool &quit, bool colourMode)
+void playTurn(Player &player, std::vector<Player> &playerList, TileBag *tileBag, GameBoard *gameBoard, bool &quit, bool versusAI, bool colourMode)
 {
   bool validInput = false;
   while (!validInput && !quit)
@@ -325,8 +350,8 @@ void playTurn(Player &player, std::vector<Player> &playerList, TileBag *tileBag,
         std::cout << "Enter filename to save: ";
         std::string filename = handleInput(quit);
         
-        // FileHandler fileHandler;  // TEMP DISABLE
-        // fileHandler.saveGame(filename, player, opponent, tileBag, gameBoard, player); // TEMP DISABLE
+        FileHandler fileHandler; 
+        fileHandler.saveGame(filename, &player, playerList, tileBag, gameBoard, versusAI, colourMode);
         std::cout << "Game saved to " << filename << std::endl;
     }
     else if (playerMove.substr(0, 7) == "replace")
@@ -458,7 +483,7 @@ void gameLoop(Player currentPlayer, std::vector<Player> playerList, TileBag *til
             if (player.getName() == "AI" && gameBoard->isEmpty()) {
                 playAIFirstTurn(&player, &playerList[(i + 1) % numPlayers], tileBag, gameBoard, quit);
             } else if (!quit && player.getName() != "AI") {
-                playTurn(player, playerList, tileBag, gameBoard, quit, colourMode);
+                playTurn(player, playerList, tileBag, gameBoard, quit, versusAI, colourMode);
             } else if (!quit) {
                 playAITurn(&player, &playerList[(i + 1) % numPlayers], tileBag, gameBoard, quit, randSeed, versusAI, colourMode);
             }
@@ -613,19 +638,19 @@ void showCredits()
   std::cout << "---------------------------------------" << std::endl;
 }
 
-void handleMenuChoice(int choice, bool &quit, unsigned int randSeed, bool versusAI, bool colourMode)
+void handleMenuChoice(int choice, bool &quit, unsigned int randSeed, bool versusAI, bool colourMode, bool multiplayerMode)
 {
   if (choice == 1)
   {
-    startNewGame(quit, randSeed, versusAI, colourMode);
+    startNewGame(quit, randSeed, versusAI, colourMode, multiplayerMode);
   }
   else if (choice == 2)
   {
-    loadGame(quit);
+    loadGame(quit, randSeed);
   }
   else if (choice == 3)
   {
-    gameOptions(randSeed, versusAI, colourMode);
+    gameOptions(randSeed, versusAI, colourMode, multiplayerMode);
   }  
   else if (choice == 4)
   {

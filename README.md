@@ -1,4 +1,4 @@
-# Advanced-Programming-A2
+# Advanced-Programming-A2 Group 4
 Advanced-Programming-A2
 
 Save/Load Game File Format: An assumption has been made by them team and the file input/output validation has been scoped to include only files with the .txt extension. This has been done to ensure that the save file has a valid extension that ensures operational consistency across multiple platforms
@@ -14,28 +14,52 @@ To clean up: `make clean`
  
 Run unit tests: `./qwirkle.exe test`
 
-Run all end-to-end tests: `./tests/run`
+Make tests executabe and run: `chmod +x ./tests/run && ./tests/run`
 
 Or run individually:<br>
- `./tests/credits/test` Test credits menu<br>
- `./tests/qwirkle/test` Test scoring a QWIRKLE<br>
- `./tests/load-game/test` Test loading game<br>
- `./tests/new-game/test` Test create new game<br>
- `./tests/save-game/test` Test saving game<br>
- `./tests/game-end/test` Test game ends when tiles run out<br>
- `./tests/line-validation/test` Test tile placement is valid based on neighboring tiles<br>
+ `chmod +x ./tests/credits/test && ./tests/credits/test` Test credits menu<br>
+ `chmod +x ./tests/qwirkle/test && ./tests/qwirkle/test` Test scoring a QWIRKLE<br>
+ `chmod +x ./tests/load-game/test && ./tests/load-game/test` Test loading game<br>
+ `chmod +x ./tests/new-game/test && ./tests/new-game/test` Test create new game<br>
+ `chmod +x ./tests/save-game/test && ./tests/save-game/test` Test saving game<br>
+ `chmod +x ./tests/game-end/test && ./tests/game-end/test` Test game ends when tiles run out<br>
+ `chmod +x ./tests/line-validation/test && ./tests/line-validation/test` Test tile placement is valid based on neighboring tiles<br>
 
-# Milestone 3 - Gameplay Enhamcents Completed
+# Milestone 3 - Gameplay Enhancements Completed
 - MAJOR: Player1 versus AI (alt) AI versus AI (supports 2-4 player AI games)
-- MAJOR: Multiplayer  			TODO CONDITIONALS
+- MAJOR: Multiplayer  			
 - MINOR: Coloured tiles 
 - MINOR: Better invalid input 
+
+# New Commands & Features
+
+## AI 
+- You can enable this feature at runtime by using "./qwirkle.exe --ai" or while in-game through the Game Options (Main Menu 3) and toggling this feature on/off. 
+- This feature is also accessible manually by naming any player "AI". This features works for 2-4 players. 
+- If AI is enabled in the main menu, multiplayer will inherently be disabled. Turn this feature off and manually name players "AI" should you wish to play any combination of AI and multiplayer content. 
+
+## Multiplayer
+- You can enable this feature at runtime by using "./qwirkle.exe --mp" or while in-game through the Game Options (Main Menu 3) and toggling this feature on/off. 
+- Multiplayer supports between 2 and 4 players. Users will be prompted for their desired number of players once they attempt to begin a new game. 
+- Multiplayer is disabled by default if the "AI" is enabled. Toggle AI off and manually name players "AI" should you wish to play any combination of AI and multiplayer content. 
+
+## Coloured Tiles
+- You can enable this feature at runtime by using "./qwirkle.exe --colour" or while in-game through the Game Options (Main Menu 3) and toggling this feature on/off. 
+- This feature will provide vibrant coloured tiles matching their base "colour type" instead of the default terminal colours defined by the users system
+
+## Better Invalid Input
+- This feature is not shown in game and instead refers to appending more meaningful error messagings to user engagement and prompts throughout the application
+
+## Game Options
+- The "Game Options" is a new sub-menu from the Main Menu, offering the user access toggle the new game features and enhancement options on and off, while also viewing their current toggled status
+- This menu is available from the main menu and selecting menu otion "3"
 
 # Individual changelog 
 - New features include the option to play 1v1 versus AI, Multiplayer mode (supporting 2-4 players), coloured tile mode, and to resize the gameboard. 
 - Numerous modifications to the existing game structure were required to capture new game modes and functions associated with individual milestones and their associated requirements
 - New args when launching qwirkle.exe include '--ai', '--mp', and '--colour'.
 - Minor bugfixes to original code
+- Refactored QWIRKLE!!! requirements to be in-line with game rules
 
 ## GameBoard 
 - DisplayBoard function now accepts a boolean arg to toggle colour mode on / off when printing the gameboard state
@@ -66,13 +90,6 @@ Or run individually:<br>
 - printScores function was updated to accomodate the multiplayer game mode and colour option enhancement
 
 ## Tests
-- Updated existing test suite to accomodate new game modes
-- Imeplemented new tests <<<<<<>>>>>>
-
-# Remaining ToDo - Individual
-
-- Update README to include commands for running new game modes
-- Remove debugging / bloated comments
-- Add appropriate commenting to newly added features in qwirkle.cpp
-- Fix save/load function and re-enable in requisite sections (such as playTurn function)
-- Fix tests to accomodate changes in formatting / game modes
+- Updated to latest commands with 'chmod +x' on whole test suite to ensure tests have permission to run
+- Updated existing test suite to accomodate new game modes and changes to game/menu structure
+- Updated Save Game and Load Game functionality to work with new game modes and enhancements

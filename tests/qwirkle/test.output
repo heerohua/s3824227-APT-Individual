@@ -3,8 +3,9 @@ Welcome to Qwirkle!
 Menu
 1. New Game
 2. Load Game
-3. Credits
-4. Quit
+3. Game Options
+4. Credits
+5. Quit
 > 
 Enter the filename from which to load a game:
 > 
@@ -24,6 +25,8 @@ F|  |  |  |  |  |  |
 Tiles in hand: B6, G2
 Your move ALICE: 
 QWIRKLE!!!
+Score for this move: 12
+Total score for ALICE: 12
 
 Score for ALICE: 12
 Score for BOB: 0
@@ -41,7 +44,8 @@ Your move BOB:
 Menu
 1. New Game
 2. Load Game
-3. Credits
-4. Quit
+3. Game Options
+4. Credits
+5. Quit
 > 
 Goodbye!

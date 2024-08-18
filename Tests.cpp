@@ -72,7 +72,8 @@ class Tests
     static void saveGameTest() 
     {
         std::cout << "#saveGameTest" << std::endl;
-        // given
+
+        // Given
         Player player1("ALICE");
         Player player2("BOB");
 
@@ -84,29 +85,33 @@ class Tests
         player1.addTileToHand(tile1);
         player2.addTileToHand(tile2);
 
-        GameBoard board(6, 6); // 6x6 board
-        board.placeTile(3, 3, tile3); // Place tile4 at D3
+        GameBoard board(6, 6);
+        board.placeTile(3, 3, tile3);
 
         std::vector<Tile*> tiles = { tile4 };
         TileBag* tileBag = new TileBag(tiles);
 
-        Player currentPlayer("ALICE"); // Example current player
+        Player currentPlayer("ALICE");
         
-        // when
+        // Create player list for saving
+        std::vector<Player> playerList = { player1, player2 };
+
+        // Set boolean flags
+        bool colourMode = true;
+        bool versusAI = false;
+        
+        // When
         std::string filename = "./tests/stubs/save-game-test-stub.txt";
         FileHandler fileHandler;
-        fileHandler.saveGame(filename, &player1, &player2, tileBag, &board, &currentPlayer);
+        fileHandler.saveGame(filename, &currentPlayer, playerList, tileBag, &board, colourMode, versusAI);
 
-        // // then
+        // Then
         std::string fileContent = fileHandler.readFileContent("tests/stubs/save-game-test-stub.txt");
-        std::string savedGame = "ALICE\n0\nR1\nBOB\n0\nG2\n6,6\nB3@D3\nY4\nALICE";
+        std::string expectedContent = "ColourMode:true\nVersusAI:false\nALICE\n0\nR1\nBOB\n0\nG2\n6,6\nB3@D3\nY4\nALICE";
         
-        assert_equality(savedGame, fileContent);
+        assert_equality(expectedContent, fileContent);
     }
 
-    
-   
-        
     static void assert_equality(std::string expected, std::string actual)
     {
         if (expected != actual) {

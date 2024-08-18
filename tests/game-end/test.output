@@ -3,8 +3,9 @@ Welcome to Qwirkle!
 Menu
 1. New Game
 2. Load Game
-3. Credits
-4. Quit
+3. Game Options
+4. Credits
+5. Quit
 > 
 Enter the filename from which to load a game:
 > 
@@ -23,6 +24,8 @@ F|  |  |  |  |  |  |
 
 Tiles in hand: B6
 Your move ALICE: 
+Score for this move: 2
+Total score for ALICE: 2
    0  1  2  3  4  5  
 --------------------
 A|  |  |  |  |  |  |
@@ -39,7 +42,8 @@ The winner is ALICE with a score of 2!
 Menu
 1. New Game
 2. Load Game
-3. Credits
-4. Quit
+3. Game Options
+4. Credits
+5. Quit
 > 
 Goodbye!

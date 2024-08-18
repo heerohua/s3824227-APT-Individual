@@ -8,18 +8,18 @@
 
 class FileHandler {
 public:
-    void saveGame(const std::string& filename, Player* player1, Player* player2, TileBag* tileBag, GameBoard* board, Player* currentPlayer);
-    bool loadGame(const std::string& filename, Player* player1, Player* player2, TileBag* tileBag, GameBoard*& board, Player* currentPlayer);
+    void saveGame(const std::string& filename, Player* currentPlayer, const std::vector<Player>& playerList, TileBag* tileBag, GameBoard* board, bool colourMode, bool versusAI);
+    bool loadGame(const std::string& filename, std::vector<Player>& playerList, TileBag* tileBag, GameBoard*& board, Player* currentPlayer, bool& colourMode, bool& versusAI);
     static bool fileExists(const std::string& filename);
     std::string readFileContent(const std::string& filename) const;
 
 private:
-    static std::string serialisePlayer(Player* player);
+    static std::string serialisePlayer(const Player* player);
     static std::string serialiseTileBag(TileBag* tileBag);
     static std::string serialiseBoard(GameBoard* board);
     std::string serialiseCurrentPlayer(Player* currentPlayer);
 
-    static void deserialisePlayer(Player* player, const std::string& data);
+    void deserialisePlayer(Player* player, const std::string& data);
     static void deserialiseTileBag(TileBag* tileBag, const std::string& data);
     GameBoard* deserialiseBoard(const std::string& data);
     void deserialiseCurrentPlayer(Player* currentPlayer, const std::string& data);

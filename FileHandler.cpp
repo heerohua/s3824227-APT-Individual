@@ -35,20 +35,34 @@ void FileHandler::vectorToLinkedList(const std::vector<Tile*>& vec, LinkedList* 
  * This function serializes the players, board, tile bag,
  * and current player, then writes them to a file.
  */
-void FileHandler::saveGame(const std::string& filename, Player* player1, Player* player2, TileBag* tileBag, GameBoard* board, Player* currentPlayer) {
+void FileHandler::saveGame(const std::string& filename, Player* currentPlayer, const std::vector<Player>& playerList, TileBag* tileBag, GameBoard* board, bool colourMode, bool versusAI) {
     std::ofstream outFile(filename);
     if (outFile.is_open()) {
-        outFile << serialisePlayer(player1) << std::endl;
-        outFile << serialisePlayer(player2) << std::endl;
+        // Save game settings
+        outFile << "ColourMode:" << (colourMode ? "true" : "false") << std::endl;
+        outFile << "VersusAI:" << (versusAI ? "true" : "false") << std::endl;
+
+        // Save all players
+        for (const Player& player : playerList) {
+            outFile << serialisePlayer(&player) << std::endl;
+        }
+
+        // Save the game board
         outFile << serialiseBoard(board) << std::endl;
+
+        // Save the tile bag
         outFile << serialiseTileBag(tileBag) << std::endl;
-        outFile << serialiseCurrentPlayer(currentPlayer);
+
+        // Save current player
+        outFile << serialiseCurrentPlayer(currentPlayer) << std::endl;
+
         outFile.close();
         std::cout << "Game successfully saved" << std::endl;
     } else {
         std::cerr << "Error: Unable to open file for writing" << std::endl;
     }
 }
+
 
 /*
  * Load the game state from a file
@@ -58,67 +72,71 @@ void FileHandler::saveGame(const std::string& filename, Player* player1, Player*
  * CORRECTLY AND MAY BE DELETED AND THE ABOVE FUNCTION USED
  * INSTEAD.
  */
-bool FileHandler::loadGame(const std::string& filename, Player* player1, Player* player2, TileBag* tileBag, GameBoard*& board, Player* currentPlayer) {
+bool FileHandler::loadGame(const std::string& filename, std::vector<Player>& playerList, TileBag* tileBag, GameBoard*& board, Player* currentPlayer, bool& colourMode, bool& versusAI) {
     std::ifstream inFile(filename);
     if (inFile.is_open()) {
-        std::string player1Data, player2Data, boardData, tileBagData, currentPlayerData;
+        std::string line;
+        
+        // Load settings
+        std::getline(inFile, line);
+        colourMode = (line == "ColourMode:true");
+        std::getline(inFile, line);
+        versusAI = (line == "VersusAI:true");
 
-        // Read and deserialize Player 1
-        std::getline(inFile, player1Data);
-        std::string player1Score;
-        std::getline(inFile, player1Score);
-        player1Data += "\n" + player1Score;
+        // Clear the existing players list
+        playerList.clear();
 
-        std::string player1Hand;
-        std::getline(inFile, player1Hand);
-        player1Data += "\n" + player1Hand;
+        // Load and deserialise Players
+        while (std::getline(inFile, line)) {
+            if (line.empty()) {
+                continue;
+            }
 
-        // std::cout << "Player 1 Data: " << player1Data << std::endl;
-        deserialisePlayer(player1, player1Data);
+            // Checks to see if the next board dimensions
+            if (line.find(',') != std::string::npos && line.find_first_of("RGBYPO") == std::string::npos) {
+                break;
+            }
 
-        // Read and deserialize Player 2
-        std::getline(inFile, player2Data);
-        std::string player2Score;
-        std::getline(inFile, player2Score);
-        player2Data += "\n" + player2Score;
+            // Start deserializing player
+            std::string playerName = line;
+            std::string playerScore;
+            std::getline(inFile, playerScore);
+            std::string playerHand;
+            std::getline(inFile, playerHand);
 
-        std::string player2Hand;
-        std::getline(inFile, player2Hand);
-        player2Data += "\n" + player2Hand;
+            std::string playerData = playerName + "\n" + playerScore + "\n" + playerHand;
+            Player player(playerName);
+            deserialisePlayer(&player, playerData);
+            playerList.push_back(player);
+        }
 
-        // std::cout << "Player 2 Data: " << player2Data << std::endl;
-        deserialisePlayer(player2, player2Data);
-
-        // Read and deserialize Board
-        std::getline(inFile, boardData);
+        // Load and deserialize Board
+        std::string boardData = line;
         std::string boardTiles;
         std::getline(inFile, boardTiles);
         boardData += "\n" + boardTiles;
 
-         // Create a new GameBoard with the deserialized data
         GameBoard* newBoard = deserialiseBoard(boardData);
         if (newBoard) {
-          if (board) {
-            // Clean up the old board if it exists
-            delete board;
-            // Set to nullptr after deletion to avoid dangling pointer
-            board = nullptr;  
-          }
-          board = newBoard;
+            if (board) {
+                delete board;
+                board = nullptr;
+            }
+            board = newBoard;
         } else {
-          std::cerr << "Error: Invalid board data" << std::endl;
-          inFile.close();
-          return false;
+            std::cerr << "Error: Invalid board data" << std::endl;
+            inFile.close();
+            return false;
         }
 
-        // Read and deserialize Tile Bag
+        // Load and deserialize Tile Bag
+        std::string tileBagData;
         std::getline(inFile, tileBagData);
-        // std::cout << "Tile Bag Data: " << tileBagData << std::endl;
         deserialiseTileBag(tileBag, tileBagData);
 
-        // Read and deserialize Current Player
+        // Load and deserialize Current Player
+        std::string currentPlayerData;
         std::getline(inFile, currentPlayerData);
-        // std::cout << "Current Player Data: " << currentPlayerData << std::endl;
         deserialiseCurrentPlayer(currentPlayer, currentPlayerData);
 
         inFile.close();
@@ -147,7 +165,6 @@ std::string FileHandler::readFileContent(const std::string& filename) const {
         std::cerr << "Error: Unable to open file for reading" << std::endl;
 
         return "";
-
     }
 
     std::string fileContent;
@@ -166,32 +183,31 @@ std::string FileHandler::readFileContent(const std::string& filename) const {
     return fileContent;
 }
 
-
-
-
 /*
  * Serialize a Player object to a string
  * This function converts the player's name, score, and hand
  * to a string representation.
  */
-std::string FileHandler::serialisePlayer(Player* player) {
+std::string FileHandler::serialisePlayer(const Player* player) {
     std::string result;
     result += player->getName() + "\n";
     result += std::to_string(player->getScore()) + "\n";
 
-    LinkedList* hand = player->getHand();
+    LinkedList* hand = const_cast<Player*>(player)->getHand();
     Node* current = hand->getHead();
+    
     while (current) {
         Tile* tile = current->getTile();
         result += tile->getColour() + std::to_string(tile->getShape());
-        if (current->getNext()) {
+        current = current->getNext();
+        if (current) {
             result += ",";
         }
-        current = current->getNext();
     }
 
     return result;
 }
+
 
 /*
  * Serialize a TileBag object to a string
@@ -239,7 +255,6 @@ std::string FileHandler::serialiseBoard(GameBoard* board) {
     return result;
 }
 
-
 /*
  * Serialize the current player to a string
  * This function returns the name of the current player.
@@ -286,7 +301,6 @@ void FileHandler::deserialisePlayer(Player* player, const std::string& data) {
     }
     vectorToLinkedList(hand, player->getHand());
 }
-
 
 /*
  * Deserialize a TileBag object from a string
