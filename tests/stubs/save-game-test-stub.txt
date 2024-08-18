@@ -1,3 +1,5 @@
+ColourMode:true
+VersusAI:false
 ALICE
 0
 R1
